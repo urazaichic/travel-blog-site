@@ -4,7 +4,7 @@ import Icon from "@/components/ui/icon";
 const SEND_CONTACT_URL = "https://functions.poehali.dev/5f75f1b3-4202-4325-b1a4-4e763112bb5b";
 
 // ── Images ──────────────────────────────────────────────────────────────────
-const IMG_HERO       = "https://cdn.poehali.dev/projects/5463dddc-ad3a-44df-9982-2b7a51790828/files/5099f093-06d1-445a-9214-a326084ed887.jpg";
+const IMG_HERO       = "https://cdn.poehali.dev/projects/5463dddc-ad3a-44df-9982-2b7a51790828/files/f0fd071c-d9f7-44ee-a8f0-2a72111d12bd.jpg";
 const IMG_GEORGIA    = "https://cdn.poehali.dev/projects/5463dddc-ad3a-44df-9982-2b7a51790828/files/183909fb-079f-475b-9e76-b5ccab8f8f4f.jpg";
 const IMG_SIENA      = "https://cdn.poehali.dev/projects/5463dddc-ad3a-44df-9982-2b7a51790828/files/4d73b0eb-2e3b-4415-81ea-bb99acb173f2.jpg";
 const IMG_OCEAN      = "https://cdn.poehali.dev/projects/5463dddc-ad3a-44df-9982-2b7a51790828/files/6b464a79-123b-4517-9e6a-e41ac7e367b2.jpg";
@@ -354,7 +354,7 @@ export default function Index() {
                 «Путешествие — это не место, куда ты едешь. Это то, кем ты становишься в пути.»
               </p>
               <div className="w-12 h-px bg-white/20 mx-auto mb-6" />
-              <p className="text-white/35 text-xs tracking-[0.4em] uppercase">Wanderlust · 2024</p>
+              <p className="text-white/35 text-xs tracking-[0.4em] uppercase">Wanderlust · 2026</p>
             </div>
           </section>
 

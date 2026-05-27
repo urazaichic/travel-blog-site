@@ -7,7 +7,7 @@ import psycopg2
 
 
 def handler(event: dict, context) -> dict:
-    """Сохраняет сообщение с формы контактов в БД и отправляет письмо владельцу блога."""
+    """Сохраняет сообщение с формы контактов в БД и по возможности отправляет письмо владельцу блога."""
 
     cors_headers = {
         "Access-Control-Allow-Origin": "*",
@@ -32,7 +32,6 @@ def handler(event: dict, context) -> dict:
 
     schema = os.environ["MAIN_DB_SCHEMA"]
 
-    # Сохраняем в базу данных
     conn = psycopg2.connect(os.environ["DATABASE_URL"])
     cur = conn.cursor()
     cur.execute(
@@ -43,57 +42,61 @@ def handler(event: dict, context) -> dict:
     cur.close()
     conn.close()
 
-    # Отправляем письмо
-    smtp_host = os.environ["SMTP_HOST"]
-    smtp_port = int(os.environ["SMTP_PORT"])
-    smtp_user = os.environ["SMTP_USER"]
-    smtp_pass = os.environ["SMTP_PASSWORD"]
-    to_email = "sophira19@mail.ru"
+    # Отправка письма — опционально, не блокирует успех
+    try:
+        smtp_host = os.environ.get("SMTP_HOST", "")
+        smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+        smtp_user = os.environ.get("SMTP_USER", "")
+        smtp_pass = os.environ.get("SMTP_PASSWORD", "")
+        to_email = "sophira19@mail.ru"
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"[Wanderlust] {subject}"
-    msg["From"] = smtp_user
-    msg["To"] = to_email
-    msg["Reply-To"] = email
+        if smtp_host and smtp_user and smtp_pass:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = f"[Wanderlust] {subject}"
+            msg["From"] = smtp_user
+            msg["To"] = to_email
+            msg["Reply-To"] = email
 
-    html_body = f"""
-    <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #1a1208;">
-      <div style="background: linear-gradient(135deg, #3a1e10, #7a3520); padding: 32px; border-radius: 12px 12px 0 0;">
-        <h1 style="color: white; font-weight: 300; font-size: 28px; margin: 0; letter-spacing: 2px;">Wanderlust</h1>
-        <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin: 6px 0 0; letter-spacing: 3px; text-transform: uppercase;">Новое сообщение с сайта</p>
-      </div>
-      <div style="background: #faf7f2; padding: 32px; border: 1px solid #e8e0d4; border-top: none; border-radius: 0 0 12px 12px;">
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-          <tr>
-            <td style="padding: 8px 0; color: #8a7a6a; font-size: 12px; width: 80px; text-transform: uppercase; letter-spacing: 1px;">Имя</td>
-            <td style="padding: 8px 0; font-size: 15px; font-weight: 500;">{name}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; color: #8a7a6a; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Email</td>
-            <td style="padding: 8px 0; font-size: 15px;"><a href="mailto:{email}" style="color: #7a3520; text-decoration: none;">{email}</a></td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; color: #8a7a6a; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Тема</td>
-            <td style="padding: 8px 0; font-size: 15px;">{subject}</td>
-          </tr>
-        </table>
-        <div style="background: white; border: 1px solid #e8e0d4; border-radius: 8px; padding: 20px;">
-          <p style="color: #8a7a6a; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px;">Сообщение</p>
-          <p style="font-size: 15px; line-height: 1.7; margin: 0; color: #2a1e12;">{message.replace(chr(10), '<br>')}</p>
-        </div>
-        <p style="margin-top: 24px; font-size: 12px; color: #b0a090; text-align: center;">
-          Ответь напрямую на это письмо — ответ уйдёт на {email}
-        </p>
-      </div>
-    </div>
-    """
+            html_body = f"""
+            <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #1a1208;">
+              <div style="background: linear-gradient(135deg, #3a1e10, #7a3520); padding: 32px; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; font-weight: 300; font-size: 28px; margin: 0; letter-spacing: 2px;">Wanderlust</h1>
+                <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin: 6px 0 0; letter-spacing: 3px; text-transform: uppercase;">Новое сообщение с сайта</p>
+              </div>
+              <div style="background: #faf7f2; padding: 32px; border: 1px solid #e8e0d4; border-top: none; border-radius: 0 0 12px 12px;">
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #8a7a6a; font-size: 12px; width: 80px; text-transform: uppercase; letter-spacing: 1px;">Имя</td>
+                    <td style="padding: 8px 0; font-size: 15px; font-weight: 500;">{name}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #8a7a6a; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Email</td>
+                    <td style="padding: 8px 0; font-size: 15px;"><a href="mailto:{email}" style="color: #7a3520; text-decoration: none;">{email}</a></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #8a7a6a; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Тема</td>
+                    <td style="padding: 8px 0; font-size: 15px;">{subject}</td>
+                  </tr>
+                </table>
+                <div style="background: white; border: 1px solid #e8e0d4; border-radius: 8px; padding: 20px;">
+                  <p style="color: #8a7a6a; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px;">Сообщение</p>
+                  <p style="font-size: 15px; line-height: 1.7; margin: 0; color: #2a1e12;">{message.replace(chr(10), '<br>')}</p>
+                </div>
+                <p style="margin-top: 24px; font-size: 12px; color: #b0a090; text-align: center;">
+                  Ответь напрямую на это письмо — ответ уйдёт на {email}
+                </p>
+              </div>
+            </div>
+            """
 
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
+            msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.starttls()
-        server.login(smtp_user, smtp_pass)
-        server.sendmail(smtp_user, to_email, msg.as_string())
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(smtp_user, to_email, msg.as_string())
+    except Exception:
+        pass
 
     return {
         "statusCode": 200,

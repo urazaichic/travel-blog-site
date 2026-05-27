@@ -95,8 +95,8 @@ def handler(event: dict, context) -> dict:
                 server.starttls()
                 server.login(smtp_user, smtp_pass)
                 server.sendmail(smtp_user, to_email, msg.as_string())
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"SMTP error: {e}")
 
     return {
         "statusCode": 200,
